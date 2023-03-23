@@ -17,7 +17,6 @@ pipeline {
             steps {
                 script {
                   def repos = [
-                    [name: 'repo1', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate'],
                     [name: 'repo2', statefile: 's3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate'],
                     [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
                   ]
