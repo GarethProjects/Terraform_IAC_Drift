@@ -16,31 +16,31 @@ pipeline {
         stage('Detect Configuration Drift') {
             steps {
                 script {
-                    def repos = [
-                        [name: 'repo1', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate'],
-                        [name: 'repo2', statefile: 's3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate'],
-                        [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
-                    ]
-                    for (def repo in repos) {
-                        sh """
-                            terraform init
-                            terraform plan \
-                                -detailed-exitcode \
-                                -out=tfplan \
-                                -var="state_file=${repo.statefile}"
-                        """
-                        def exitCode = sh(
-                            returnStatus: true,
-                            script: 'echo $?'
-                        ).trim().toInteger()
-                        if (exitCode == 2) {
-                            error "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure."
-                        } else if (exitCode == 1) {
-                            error "There was an error running 'terraform plan' in ${repo.name}. Check the logs for details."
-                        } else {
-                            echo "No configuration drift detected in ${repo.name}."
-                        }
+                  def repos = [
+                    [name: 'repo1', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate'],
+                    [name: 'repo2', statefile: 's3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate'],
+                    [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
+                  ]
+                  for (def repo in repos) {
+                    sh "terraform init"
+                    sh """
+                      terraform plan \
+                        -detailed-exitcode \
+                        -out=tfplan \
+                        -var="state_file=${repo.statefile}"
+                    """
+                    def exitCode = sh(
+                      returnStatus: true,
+                      script: 'echo $?'
+                    ).trim().toInteger()
+                    if (exitCode == 2) {
+                      error "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure for ${repo.name}."
+                    } else if (exitCode == 1) {
+                      error "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
+                    } else {
+                      echo "No configuration drift detected in ${repo.name}."
                     }
+                  }
                 }
             }
         }
