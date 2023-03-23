@@ -19,11 +19,11 @@ pipeline {
                     terraform init
                     terraform plan -detailed-exitcode -out=tfplan
                 '''
-                script {
+                 script {
                     def exitCode = sh(
                         returnStatus: true,
                         script: 'echo $?'
-                    ).trim().toInteger()
+                    )
                     if (exitCode == 2) {
                         error "Configuration drift detected! Run 'terraform apply' to update the infrastructure."
                     } else if (exitCode == 1) {
