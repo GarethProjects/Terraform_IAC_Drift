@@ -1,12 +1,6 @@
 pipeline {
     agent any
-    parameters {
-        booleanParam(
-            name: 'detectDrift',
-            defaultValue: true,
-            description: 'Set to true to detect configuration drift'
-        )
-    }
+    
     environment {
         AWS_DEFAULT_REGION="us-east-2"
         THE_BUTLER_SAYS_SO=credentials('aws-creds')
