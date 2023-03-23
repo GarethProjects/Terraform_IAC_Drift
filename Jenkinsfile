@@ -67,6 +67,6 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'tfplan.txt'
         }
-    }
+     }
   }
 }
