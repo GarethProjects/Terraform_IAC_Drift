@@ -16,20 +16,36 @@ pipeline {
         stage('Detect Configuration Drift') {
             steps {
                 script {
-                  def repos = [
-                    [name: 'repo1', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate'],
-                    [name: 'repo2', statefile: 's3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate'],
-                    [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
-                  ]
-                  for (def repo in repos) {
-                    sh "terraform init"
-                    sh """
-                      terraform plan \
-                        -detailed-exitcode \
-                        -out=tfplan \
-                        -var="state_file=${repo.statefile}"
-                    """
-                  }
+                    def repos = [
+                        [name: 'repo1', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate'],
+                        [name: 'repo2', statefile: 's3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate'],
+                        [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
+                    ]
+                    boolean driftDetected = false // set to false initially
+                    for (def repo in repos) {
+                        sh "terraform init"
+                        sh """
+                            terraform plan \
+                            -detailed-exitcode \
+                            -out=tfplan \
+                            -var="state_file=${repo.statefile}"
+                        """
+                        def exitCode = sh(
+                            returnStatus: true,
+                            script: 'echo $?'
+                        ).trim().toInteger()
+                        if (exitCode == 2) {
+                            echo "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure for ${repo.name}."
+                            driftDetected = true // set to true if any drift is detected
+                        } else if (exitCode == 1) {
+                            echo "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
+                        } else {
+                            echo "No configuration drift detected in ${repo.name}."
+                        }
+                    }
+                    if (driftDetected) {
+                        currentBuild.result = 'UNSTABLE' // set build result to UNSTABLE if drift was detected
+                    }
                 }
             }
         }
