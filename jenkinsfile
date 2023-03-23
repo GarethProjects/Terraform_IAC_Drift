@@ -22,13 +22,13 @@ pipeline {
                         [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
                     ]
                     for (def repo in repos) {
-                        sh '''
+                        sh """
                             terraform init
                             terraform plan \
                                 -detailed-exitcode \
                                 -out=tfplan \
                                 -var="state_file=${repo.statefile}"
-                        '''
+                        """
                         def exitCode = sh(
                             returnStatus: true,
                             script: 'echo $?'
