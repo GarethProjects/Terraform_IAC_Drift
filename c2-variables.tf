@@ -11,3 +11,7 @@ variable "instance_type" {
   #default = "t2.micro"
   default = "t2.small"
 }
+
+variable "state_file" {
+  description = "Path to the statefile"
+}
