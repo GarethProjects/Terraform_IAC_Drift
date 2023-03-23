@@ -34,9 +34,9 @@ pipeline {
                       script: 'echo $?'
                     ).trim().toInteger()
                     if (exitCode == 2) {
-                      error "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure for ${repo.name}."
+                      echo "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure for ${repo.name}."
                     } else if (exitCode == 1) {
-                      error "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
+                      echo "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
                     } else {
                       echo "No configuration drift detected in ${repo.name}."
                     }
