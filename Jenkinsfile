@@ -29,11 +29,11 @@ pipeline {
             }
         }
         
-//         stage ("state list") {
-//             steps {
-//                 sh ('terraform state list')
-//             }
-//         }
+        stage ("state list") {
+            steps {
+                sh ('terraform state list')
+            }
+        }
         
         stage ("plan") {
             steps {
