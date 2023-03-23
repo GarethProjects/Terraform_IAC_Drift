@@ -14,11 +14,6 @@ pipeline {
     
     stages {
         stage('Detect Configuration Drift') {
-            when {
-                expression {
-                    params.detectDrift == true
-                }
-            }
             steps {
                 sh '''
                     terraform init
@@ -30,11 +25,11 @@ pipeline {
                         script: 'echo $?'
                     ).trim().toInteger()
                     if (exitCode == 2) {
-                        echo "There are changes detected. Run 'terraform apply' to update the infrastructure."
+                        error "Configuration drift detected! Run 'terraform apply' to update the infrastructure."
                     } else if (exitCode == 1) {
                         error "There was an error running 'terraform plan'. Check the logs for details."
                     } else {
-                        echo "No changes detected."
+                        echo "No configuration drift detected."
                     }
                 }
             }
