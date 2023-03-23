@@ -24,7 +24,7 @@ pipeline {
                     for (def repo in repos) {
                         sh '''
                             terraform init \
-                                -backend-config="bucket=${repo.statefile}"
+                                -backend-config='bucket=${repo.statefile}'
                             terraform plan \
                                 -detailed-exitcode \
                                 -out=tfplan \
