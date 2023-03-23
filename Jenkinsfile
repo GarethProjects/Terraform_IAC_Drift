@@ -63,10 +63,10 @@ pipeline {
 //                 sh ('terraform state list')
 //             }
 //         }
-   post {
-      always {
-          archiveArtifacts artifacts: 'tfplan.txt'
+    post {
+        always {
+        archiveArtifacts artifacts: 'tfplan.txt'
         }
-      }
+    }
   }
 }
