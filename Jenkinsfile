@@ -47,6 +47,33 @@ pipeline {
                 sh ('terraform plan -out myplan')
             }
         }
+        
+        stage('Detect Configuration Drift') {
+            when {
+                expression {
+                    params.detectDrift == true
+                }
+            }
+            steps {
+                sh '''
+                    terraform init
+                    terraform plan -detailed-exitcode -out=tfplan
+                '''
+                script {
+                    def exitCode = sh(
+                        returnStatus: true,
+                        script: 'echo $?'
+                    ).trim().toInteger()
+                    if (exitCode == 2) {
+                        echo "There are changes detected. Run 'terraform apply' to update the infrastructure."
+                    } else if (exitCode == 1) {
+                        error "There was an error running 'terraform plan'. Check the logs for details."
+                    } else {
+                        echo "No changes detected."
+                    }
+                }
+            }
+        }
         stage ("Validate apply") {
             input {
                 message "Are you sure you want to apply this plan?"
