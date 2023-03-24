@@ -11,47 +11,93 @@ pipeline {
         AWS_DEFAULT_REGION="us-east-2"
         THE_BUTLER_SAYS_SO=credentials('aws-creds')
     }
-    
     stages {
-        stage('Detect Configuration Drift') {
+        stage('Detect Configuration Drift - Repo 1') {
+            when {
+                expression {
+                    return params.detectDrift
+                }
+            }
             steps {
                 script {
-                    def repos = [
-                        [name: 'repo1', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate'],
-                        [name: 'repo2', statefile: 's3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate'],
-                        [name: 'repo3', statefile: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
-                    ]
-                    for (def repo in repos) {
-                        sh "terraform init"
-                        def planCmd = "terraform plan -detailed-exitcode -out=tfplan -var=\"state_file=${repo.statefile}\""
-                        def planResult = sh(
-                            script: planCmd,
-                            returnStdout: true,
-                            returnStatus: true
-                        )
-                        def exitCode = planResult.exitStatus
-                        if (exitCode == 2) {
-                            echo "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure for ${repo.name}."
-                            currentBuild.result = 'UNSTABLE'
-                        } else if (exitCode == 1) {
-                            echo "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
-                            currentBuild.result = 'FAILURE'
-                        } else {
-                            echo "No configuration drift detected in ${repo.name}."
-                        }
+                    sh "terraform init"
+                    sh """
+                        terraform plan \
+                            -detailed-exitcode \
+                            -out=tfplan \
+                            -var="state_file=s3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate"
+                    """
+                    def exitCode = sh(
+                        returnStatus: true,
+                        script: 'echo $?'
+                    ).trim().toInteger()
+                    if (exitCode == 2) {
+                        error "Configuration drift detected in repo1! Run 'terraform apply' to update the infrastructure."
+                    } else if (exitCode == 1) {
+                        error "There was an error running 'terraform plan' for repo1. Check the logs for details."
+                    } else {
+                        echo "No configuration drift detected in repo1."
                     }
                 }
             }
         }
-        stage('Post-Processing') {
-            steps {
-                echo 'All done!'
+        stage('Detect Configuration Drift - Repo 2') {
+            when {
+                expression {
+                    return params.detectDrift
+                }
             }
-            post {
-                always {
-                    sh 'echo "Pipeline completed with result: ${currentBuild.currentResult}"'
+            steps {
+                script {
+                    sh "terraform init"
+                    sh """
+                        terraform plan \
+                            -detailed-exitcode \
+                            -out=tfplan \
+                            -var="state_file=s3://demo-bucket-terraform1000/terraformDemoDayN_Drift/tfstate.tfstate"
+                    """
+                    def exitCode = sh(
+                        returnStatus: true,
+                        script: 'echo $?'
+                    ).trim().toInteger()
+                    if (exitCode == 2) {
+                        error "Configuration drift detected in repo2! Run 'terraform apply' to update the infrastructure."
+                    } else if (exitCode == 1) {
+                        error "There was an error running 'terraform plan' for repo2. Check the logs for details."
+                    } else {
+                        echo "No configuration drift detected in repo2."
+                    }
                 }
             }
         }
-    }
-}
+        stage('Detect Configuration Drift - Repo 3') {
+            when {
+                expression {
+                    return params.detectDrift
+                }
+            }
+            steps {
+                script {
+                    sh "terraform init"
+                    sh """
+                        terraform plan \
+                            -detailed-exitcode \
+                            -out=tfplan \
+                            -var="state_file=s3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate"
+                    """
+                    def exitCode = sh(
+                        returnStatus: true,
+                        script: 'echo $?'
+                    ).trim().toInteger()
+                    if (exitCode == 2) {
+                        error "Configuration drift detected in repo3! Run 'terraform apply' to update the infrastructure."
+                    } else if (exitCode == 1) {
+                        error "There was an error running 'terraform plan' for repo3. Check the logs for details."
+                    } else {
+                        echo "No configuration drift detected in repo3."
+                    }
+                }
+            }
+        }
+        
+                     
