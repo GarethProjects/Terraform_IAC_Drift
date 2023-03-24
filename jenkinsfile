@@ -92,7 +92,7 @@ pipeline {
                                 terraform plan \
                                     -detailed-exitcode \
                                     -out=tfplan \
-                                    -var="stateFile=${repo.stateFile}"
+                                    -var="state_file=${repo.stateFile}"
                                 exit $?
                             """
                         ).trim().toInteger()
