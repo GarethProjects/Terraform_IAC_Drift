@@ -23,7 +23,6 @@ pipeline {
                     sh "terraform init"
                     sh """
                         terraform plan \
-                            -detailed-exitcode \
                             -out=tfplan \
                             -var="stateFile=s3://demo-bucket-terraform1000/terraformDemoDay0/tfstate.tfstate"
                     """
@@ -54,7 +53,6 @@ pipeline {
                             sh "terraform init"
                             sh """
                                 terraform plan \
-                                    -detailed-exitcode \
                                     -out=tfplan \
                                     -var="stateFile=\${repo.stateFile}"
                             """
@@ -90,7 +88,6 @@ pipeline {
                             script: """
                                 terraform init
                                 terraform plan \
-                                    -detailed-exitcode \
                                     -out=tfplan \
                                     -var="stateFile=\${repo.stateFile}"
                                 exit \$?
