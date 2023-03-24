@@ -12,6 +12,6 @@ variable "instance_type" {
   default = "t2.small"
 }
 
-variable "state_file" {
+variable "stateFile" {
   description = "Path to the statefile"
 }
