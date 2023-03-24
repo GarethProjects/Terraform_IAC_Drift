@@ -93,7 +93,7 @@ pipeline {
                                     -detailed-exitcode \
                                     -out=tfplan \
                                     -var="stateFile=\${repo.stateFile}"
-                                exit $?
+                                exit \$?
                             """
                         ).trim().toInteger()
                         
