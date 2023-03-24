@@ -54,7 +54,7 @@ pipeline {
                             sh """
                                 terraform plan \
                                     -out=tfplan \
-                                    -var="stateFile=\${repo.stateFile}"
+                                    -var="stateFile=${repo.stateFile}"
                             """
                             def exitCode = sh(
                                 returnStatus: true,
@@ -89,7 +89,7 @@ pipeline {
                                 terraform init
                                 terraform plan \
                                     -out=tfplan \
-                                    -var="stateFile=\${repo.stateFile}"
+                                    -var="stateFile=${repo.stateFile}"
                                 exit \$?
                             """
                         ).trim().toInteger()
