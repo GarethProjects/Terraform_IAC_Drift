@@ -84,35 +84,33 @@ pipeline {
                         [name: 'Repo 3', state_file: 's3://demo-bucket-terraform1000/terraformDemoDay0_deleteDemo/tfstate.tfstate']
             ]
 
-            for (repo in repos) {
-                def exitCode = sh (
-                    returnStatus: true,
-                    script: """
-                        terraform init
-                        terraform plan \
-                            -detailed-exitcode \
-                            -out=tfplan \
-                            -var="state_file=${repo.state_file}"
-                        exit $?
-                    """
-                ).trim().toInteger()
-                
-                if (exitCode == 2) {
-                    echo "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure."
-                    driftDetected = true
-                } else if (exitCode == 1) {
-                    error "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
-                } else {
-                    echo "No configuration drift detected in ${repo.name}."
+                    for (repo in repos) {
+                        def exitCode = sh (
+                            returnStatus: true,
+                            script: """
+                                terraform init
+                                terraform plan \
+                                    -detailed-exitcode \
+                                    -out=tfplan \
+                                    -var="state_file=${repo.state_file}"
+                                exit $?
+                            """
+                        ).trim().toInteger()
+                        
+                        if (exitCode == 2) {
+                            echo "Configuration drift detected in ${repo.name}! Run 'terraform apply' to update the infrastructure."
+                            driftDetected = true
+                        } else if (exitCode == 1) {
+                            error "There was an error running 'terraform plan' for ${repo.name}. Check the logs for details."
+                        } else {
+                            echo "No configuration drift detected in ${repo.name}."
+                        }
+                    }
+                    if (driftDetected) {
+                        error "At least one repo has configuration drift! Please run 'terraform apply' to update the infrastructure."
+                    }
                 }
-            }
-            if (driftDetected) {
-                error "At least one repo has configuration drift! Please run 'terraform apply' to update the infrastructure."
             }
         }
     }
-}
-
-
-
-
+}    
